@@ -40,7 +40,31 @@ about the fictional profile. Set `GEMINI_API_KEY` in `.env` before testing chat 
 
 Open `http://localhost:8000/docs` to test it. Health endpoint: `GET /health`.
 
-## 2. React integration
+## 2. Run the backend with Docker
+
+The Docker setup runs only the backend API; it does not build or serve the demo frontend.
+The image includes Chromium because the backend uses it to read the configured website.
+
+Copy `.env.example` to `.env`, set `GEMINI_API_KEY`, and configure `WEBSITE_URL` to the
+website the assistant should answer questions about. Set `ALLOWED_ORIGINS` to the origin
+of the website that will call this API (for example, `https://yourdomain.com`). For
+server-to-server authentication, set a long `APP_API_KEY`.
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+```
+
+The API is available at `http://localhost:8000`, and the streaming endpoint is
+`POST http://localhost:8000/api/v1/chat/stream`. Check that it is running with
+`http://localhost:8000/health` or open the API docs at `http://localhost:8000/docs`.
+To stop the backend, run `docker compose down`.
+
+When a website calls the endpoint directly from a browser, its origin must be listed in
+`ALLOWED_ORIGINS`. If `APP_API_KEY` is enabled, do not expose that secret in a public
+frontend; proxy requests through that website's server instead.
+
+## 3. React integration
 
 Keep the API key out of a public frontend when possible: call this API through your React
 app's server/proxy. For a simple local example:
@@ -64,7 +88,7 @@ if (!response.ok) throw new Error("Chatbot unavailable");
 const { answer } = await response.json();
 ```
 
-## 3. Included test React frontend
+## 4. Included test React frontend
 
 An independent test UI is in `frontend/`; it is useful for trying questions before handing the
 project over. Keep the FastAPI server running, then open another terminal:
