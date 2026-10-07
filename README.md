@@ -64,7 +64,33 @@ When a website calls the endpoint directly from a browser, its origin must be li
 `ALLOWED_ORIGINS`. If `APP_API_KEY` is enabled, do not expose that secret in a public
 frontend; proxy requests through that website's server instead.
 
-## 3. React integration
+## 3. Deploy the backend to Render
+
+Render can build and run this backend from its Dockerfile. Push the repository to GitHub,
+then create a **New > Web Service** in the [Render Dashboard](https://dashboard.render.com/)
+and connect the repository. Choose **Docker** as the runtime and **Free** as the instance
+plan. Keep the service's root directory at the repository root so Render can find
+`Dockerfile`.
+
+In the service's environment variables, add:
+
+- `GEMINI_API_KEY`: your Google AI Studio API key.
+- `WEBSITE_URL`: the public website whose content the chatbot should use.
+- `ALLOWED_ORIGINS`: the frontend website's origin, for example `https://yourdomain.com`.
+- `PORT`: `8000`, matching the port used by this Dockerfile.
+
+After the first deploy succeeds, Render provides a public service URL. The streaming
+endpoint is `https://<your-service>.onrender.com/api/v1/chat/stream`; check
+`https://<your-service>.onrender.com/health` to verify the service is responding.
+
+Render's Free web services can spin down after 15 minutes without traffic, so the first
+request after inactivity may take about a minute while the service starts again. Free
+instances are best for testing and hobby projects, not production workloads.
+
+If you set `APP_API_KEY`, call the API through your website's server-side proxy rather
+than exposing the key in browser code.
+
+## 4. React integration
 
 Keep the API key out of a public frontend when possible: call this API through your React
 app's server/proxy. For a simple local example:
@@ -88,7 +114,7 @@ if (!response.ok) throw new Error("Chatbot unavailable");
 const { answer } = await response.json();
 ```
 
-## 4. Included test React frontend
+## 5. Included test React frontend
 
 An independent test UI is in `frontend/`; it is useful for trying questions before handing the
 project over. Keep the FastAPI server running, then open another terminal:
